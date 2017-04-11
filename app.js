@@ -5,8 +5,11 @@ const http = require('http'),
     cors = require('cors'),
     bodyParser = require('body-parser'),
     server = http.createServer(app),
-
-    movies = require('./lib/movies')('movies.json');
+    mongoClient = require('mongodb').MongoClient,
+    mongoURL = 'mongodb://basin.cs.middlebury.edu:5000',
+    ObjectID = require('mongodb').ObjectID;
+ let db;
+  //  movies = require('./lib/movies')('movies.json');
 
   const corsOptions = {
     methods: ['GET', 'PUT', 'POST'],
@@ -19,20 +22,34 @@ const http = require('http'),
   app.use(bodyParser.json());
 
   app.get('/api/movies', (request, response) =>{
-    response.send(movies.getAllMovies());
+    db.collection('movies').find().toArray((err, documents)=>{
+      response.send(documents);
+    });
   });
 
   app.get('/api/movies/:id', (request, response) =>{
-    response.send(movies.getMovie(request.params.id));
+    const movieId = request.params.id;
+
+    db.collection('movies').find({id:movieId}).next((err, document)=>{
+      response.send(document);
+    });
   });
 
   app.put('/api/movies/:id', (request, response) =>{
 
-    movies.updateMovie(request.body);
-    response.send(movies.getMovie(request.params.id));
-    
+    let movie = request.body;
+    movie._id = ObjectID.createFromHexString(movies._id);
+
+    db.collection('movies').update({id:movieId}, {$set:movie},(err, result)=>{
+      response.sendStatus(200);
+    });
+
+
   });
 
-
-server.listen(4242);
-console.log('Listening on port %d', server.address().port);
+mongoClient.connect(mongoURL, (err, database)=>{
+  console.log(err);
+  db = database;
+  server.listen(4242);
+  console.log('Listening on port %d', server.address().port);
+})
