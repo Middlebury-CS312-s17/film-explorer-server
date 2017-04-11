@@ -67,7 +67,7 @@ mongoClient.connect(mongoURL, (err, database)=>{
     console.error(err);
   }else{
     db = database;
-    server.listen(4242);
+    server.listen(5042);
     console.log('Listening on port %d', server.address().port);
   }
 });
